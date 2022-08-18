@@ -88,9 +88,9 @@ name = "breakout"
 version = "0.1.0"
 dependencies = [
  "cgmath",
- "ge",
  "glium",
  "image",
+ "open-oak",
  "uuid",
 ]
 
@@ -553,16 +553,6 @@ name = "futures-sink"
 version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21163e139fa306126e6eedaf49ecdb4588f939600f0b1e770f4205ee4b7fa868"
-
-[[package]]
-name = "ge"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "glium",
- "image",
- "uuid",
-]
 
 [[package]]
 name = "getrandom"
@@ -1069,6 +1059,16 @@ name = "once_cell"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18a6dbe30758c9f83eb00cbea4ac95966305f5a7772f3f42ebfc7fc7eddbd8e1"
+
+[[package]]
+name = "open-oak"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "glium",
+ "image",
+ "uuid",
+]
 
 [[package]]
 name = "osmesa-sys"

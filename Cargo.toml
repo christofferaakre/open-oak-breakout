@@ -10,4 +10,4 @@ uuid = "*"
 image = "*"
 cgmath = "*"
 glium = "*"
-ge = { path = "../ge" }
+open-oak = { path = "../open-oak" }
