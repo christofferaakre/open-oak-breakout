@@ -11,8 +11,25 @@ use cgmath::Vector2;
 use levels::BlockType;
 
 #[derive(Debug, Clone)]
-pub struct Block {
+struct Block {
     rect: Rectangle,
+}
+
+#[derive(Debug, Clone)]
+struct Player {
+    rect: Rectangle,
+    velocity: Vector2<f32>,
+    position: Vector2<f32>,
+}
+
+impl Player {
+    fn new(position: Vector2<f32>, size: Vector2<f32>) -> Self {
+        Player {
+            position,
+            velocity: Vector2::new(0.0, 0.0),
+            rect: Rectangle::new(position, size, image::Rgba([1.0, 1.0, 1.0, 1.0])),
+        }
+    }
 }
 
 mod levels;
@@ -56,9 +73,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut block = Block::new(
                 Vector2::new(
                     x as f32 / level.width as f32,
-                    y as f32 / level.height as f32 / 2.0,
+                    y as f32 / level.height as f32 / 3.0,
                 ),
-                Vector2::new(1.0 / level.width as f32, 1.0 / level.height as f32 / 2.0),
+                Vector2::new(1.0 / level.width as f32, 1.0 / level.height as f32 / 3.0),
                 image::Rgba([1.0, 1.0, 1.0, 1.0]),
             );
             match block_type {
@@ -75,6 +92,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             blocks.push(block);
         }
     }
+
+    // load player texture
+    let player_texture_name = String::from("player");
+    let texture = ResourceManager::load_texture(&display, "textures/paddle.png");
+    resource_manager.add_texture(&player_texture_name, texture);
+
+    // init player
+    let mut player = Player::new(Vector2::new(0.35, 1.0 - 0.1), Vector2::new(0.3, 0.06));
+    player.rect.set_texture(player_texture_name);
+
     // game loop
     event_loop.run(move |ev, _, control_flow| {
         // handle events, keyboard input, etc.
@@ -83,12 +110,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut frame = display.draw();
         frame.clear_color(0.2, 0.3, 0.3, 1.0);
 
+        // DRAW START
         for block in &blocks {
             block.rect.draw(&mut frame, &resource_manager).unwrap();
         }
 
-        // DRAW START
-        // block.rect.draw(&mut frame, &resource_manager).unwrap();
+        player.rect.draw(&mut frame, &resource_manager).unwrap();
 
         frame.finish().unwrap();
         // DRAW END
