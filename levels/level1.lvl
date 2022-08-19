@@ -1,7 +1,9 @@
-8x6
-1 1 1 1 1 1 1 1
-1 1 1 1 1 1 1 1
-1 1 1 1 1 1 1 1
-1 1 1 1 1 1 1 1
-1 1 1 1 1 1 1 1
-1 1 1 1 1 1 1 1
+level 1
+dimensions 8x6
+
+b b b b b b b b
+b b b s b s b b
+b b b b b b b b
+b s b b b s b b
+b b b b b b b b
+b b b b b b b b

@@ -8,9 +8,14 @@ use open_oak::traits::{Renderable, Shaders, Texture};
 
 use cgmath::Vector2;
 
-struct Block {
+use levels::BlockType;
+
+#[derive(Debug, Clone)]
+pub struct Block {
     rect: Rectangle,
 }
+
+mod levels;
 
 impl Block {
     fn new(position: Vector2<f32>, size: Vector2<f32>, color: image::Rgba<f32>) -> Block {
@@ -19,7 +24,7 @@ impl Block {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // init game and destructure
     let game = init();
 
@@ -31,24 +36,45 @@ fn main() {
         ..
     } = game;
 
-    // define block
-    let mut block = Block::new(
-        Vector2::new(0.5, 0.5),
-        Vector2::new(0.3, 0.3),
-        image::Rgba::from([1.0, 0.0, 0.0, 1.0]),
-    );
-
     // init rectangle
     Rectangle::init(&mut resource_manager, &display);
 
-    // load block texture
-    let texture_name = String::from("block");
+    // load breakable texture
+    let texture_name = String::from("breakable");
     let texture = ResourceManager::load_texture(&display, "textures/block.png");
     resource_manager.add_texture(&texture_name, texture);
 
-    // set block texture
-    block.rect.set_texture(texture_name.clone());
+    // load solid texture
+    let texture_name = String::from("solid");
+    let texture = ResourceManager::load_texture(&display, "textures/block_solid.png");
+    resource_manager.add_texture(&texture_name, texture);
 
+    let level = levels::parse_file_to_level("levels/level1.lvl")?;
+    let mut blocks = vec![];
+    for (y, row) in &mut level.blocks.iter().enumerate() {
+        for (x, block_type) in row.iter().enumerate() {
+            let mut block = Block::new(
+                Vector2::new(
+                    x as f32 / level.width as f32,
+                    y as f32 / level.height as f32 / 2.0,
+                ),
+                Vector2::new(1.0 / level.width as f32, 1.0 / level.height as f32 / 2.0),
+                image::Rgba([1.0, 1.0, 1.0, 1.0]),
+            );
+            match block_type {
+                BlockType::Breakable => {
+                    block.rect.set_texture(String::from("breakable"));
+                    block.rect.color = image::Rgba([255.0 / 255.0, 152.0 / 255.0, 0.0, 1.0])
+                }
+                BlockType::Solid => {
+                    block.rect.set_texture(String::from("solid"));
+                    block.rect.color =
+                        image::Rgba([158.0 / 255.0, 158.0 / 255.0, 158.0 / 255.0, 1.0]);
+                }
+            }
+            blocks.push(block);
+        }
+    }
     // game loop
     event_loop.run(move |ev, _, control_flow| {
         // handle events, keyboard input, etc.
@@ -57,8 +83,12 @@ fn main() {
         let mut frame = display.draw();
         frame.clear_color(0.2, 0.3, 0.3, 1.0);
 
+        for block in &blocks {
+            block.rect.draw(&mut frame, &resource_manager).unwrap();
+        }
+
         // DRAW START
-        block.rect.draw(&mut frame, &resource_manager).unwrap();
+        // block.rect.draw(&mut frame, &resource_manager).unwrap();
 
         frame.finish().unwrap();
         // DRAW END
