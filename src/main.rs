@@ -1,12 +1,12 @@
+use glium::glutin::event;
 use glium::Surface;
 
+use cgmath::Vector2;
 use open_oak::events::handle_events;
 use open_oak::init::{init, Game};
 use open_oak::rectangle::Rectangle;
 use open_oak::resource_manager::ResourceManager;
 use open_oak::traits::{Renderable, Shaders, Texture};
-
-use cgmath::Vector2;
 
 use levels::BlockType;
 
@@ -105,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // game loop
     event_loop.run(move |ev, _, control_flow| {
         // handle events, keyboard input, etc.
-        handle_events(ev, control_flow);
+        handle_events(ev, control_flow, handle_keyboard_input);
 
         let mut frame = display.draw();
         frame.clear_color(0.2, 0.3, 0.3, 1.0);
@@ -120,4 +120,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         frame.finish().unwrap();
         // DRAW END
     });
+}
+
+fn handle_keyboard_input(input: event::KeyboardInput) {
+    match input.virtual_keycode {
+        Some(keycode) => match keycode {
+            event::VirtualKeyCode::Escape => {
+                std::process::exit(0);
+            }
+            _ => {}
+        },
+        None => {}
+    }
 }
