@@ -1,4 +1,4 @@
-use glium::glutin::event;
+use glium::glutin::event::{self, ElementState, KeyboardInput, VirtualKeyCode};
 use glium::Surface;
 
 use cgmath::Vector2;
@@ -9,6 +9,10 @@ use open_oak::resource_manager::ResourceManager;
 use open_oak::traits::{Renderable, Shaders, Texture};
 
 use levels::BlockType;
+
+use std::collections::HashSet;
+
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone)]
 struct Block {
@@ -29,6 +33,11 @@ impl Player {
             velocity: Vector2::new(0.0, 0.0),
             rect: Rectangle::new(position, size, image::Rgba([1.0, 1.0, 1.0, 1.0])),
         }
+    }
+
+    fn update(&mut self, dt: f32) {
+        self.position += self.velocity * dt;
+        self.rect.position = self.position;
     }
 }
 
@@ -102,10 +111,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut player = Player::new(Vector2::new(0.35, 1.0 - 0.1), Vector2::new(0.3, 0.06));
     player.rect.set_texture(player_texture_name);
 
+    let mut pressed_keys: HashSet<VirtualKeyCode> = HashSet::new();
+
+    let mut last_frame = Instant::now();
     // game loop
     event_loop.run(move |ev, _, control_flow| {
+        // calculate time since last frame
+        let dt = last_frame.elapsed();
+        last_frame += dt;
+        println!("dt: {:?}", dt);
+
         // handle events, keyboard input, etc.
-        handle_events(ev, control_flow, handle_keyboard_input);
+        let keyboard_input = handle_events(ev, control_flow);
+        if let Some(keyboard_input) = keyboard_input {
+            handle_keyboard_input(keyboard_input, &mut pressed_keys, &mut player);
+        }
+
+        println!("Pressed keys: {:?}", pressed_keys);
+
+        player.update(dt.as_secs_f32());
 
         let mut frame = display.draw();
         frame.clear_color(0.2, 0.3, 0.3, 1.0);
@@ -122,14 +146,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 }
 
-fn handle_keyboard_input(input: event::KeyboardInput) {
-    match input.virtual_keycode {
-        Some(keycode) => match keycode {
-            event::VirtualKeyCode::Escape => {
-                std::process::exit(0);
-            }
-            _ => {}
-        },
-        None => {}
+fn handle_keyboard_input(
+    input: event::KeyboardInput,
+    pressed_keys: &mut HashSet<VirtualKeyCode>,
+    player: &mut Player,
+) {
+    let keycode = input
+        .virtual_keycode
+        .unwrap_or_else(|| panic!("Keyboard input {:?} did not have a valid keycode", input));
+
+    // key pressed and wasn't pressed before
+    if input.state == ElementState::Pressed && !pressed_keys.contains(&keycode) {
+        pressed_keys.insert(keycode);
+    }
+    // key was pressed before and was released
+    if input.state == ElementState::Released && pressed_keys.contains(&keycode) {
+        pressed_keys.remove(&keycode);
+    }
+    match keycode {
+        event::VirtualKeyCode::Escape => {
+            std::process::exit(0);
+        }
+        _ => {
+            println!("{:?}", input);
+        }
+    };
+
+    player.velocity = Vector2::new(0.0, 0.0);
+
+    if pressed_keys.contains(&VirtualKeyCode::A) {
+        player.velocity += Vector2::new(-1.0, 0.0);
+    }
+
+    if pressed_keys.contains(&VirtualKeyCode::D) {
+        player.velocity += Vector2::new(1.0, 0.0);
     }
 }
