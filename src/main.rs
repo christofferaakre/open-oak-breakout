@@ -115,16 +115,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut last_frame = Instant::now();
     // game loop
-    event_loop.run(move |ev, _, control_flow| {
+    event_loop.run(move |ev, _, _control_flow| {
         // calculate time since last frame
         let dt = last_frame.elapsed();
         last_frame += dt;
         println!("dt: {:?}", dt);
 
         // handle events, keyboard input, etc.
-        let keyboard_input = handle_events(ev, control_flow);
+        let keyboard_input = handle_events(ev, &mut pressed_keys);
         if let Some(keyboard_input) = keyboard_input {
-            handle_keyboard_input(keyboard_input, &mut pressed_keys, &mut player);
+            handle_keyboard_input(keyboard_input, &pressed_keys, &mut player);
         }
 
         println!("Pressed keys: {:?}", pressed_keys);
@@ -148,30 +148,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn handle_keyboard_input(
     input: event::KeyboardInput,
-    pressed_keys: &mut HashSet<VirtualKeyCode>,
+    pressed_keys: &HashSet<VirtualKeyCode>,
     player: &mut Player,
 ) {
-    let keycode = input
-        .virtual_keycode
-        .unwrap_or_else(|| panic!("Keyboard input {:?} did not have a valid keycode", input));
-
-    // key pressed and wasn't pressed before
-    if input.state == ElementState::Pressed && !pressed_keys.contains(&keycode) {
-        pressed_keys.insert(keycode);
-    }
-    // key was pressed before and was released
-    if input.state == ElementState::Released && pressed_keys.contains(&keycode) {
-        pressed_keys.remove(&keycode);
-    }
-    match keycode {
+    match input.virtual_keycode.unwrap() {
         event::VirtualKeyCode::Escape => {
             std::process::exit(0);
         }
-        _ => {
-            println!("{:?}", input);
-        }
+        _ => {}
     };
 
+    // Movement
     player.velocity = Vector2::new(0.0, 0.0);
 
     if pressed_keys.contains(&VirtualKeyCode::A) {
