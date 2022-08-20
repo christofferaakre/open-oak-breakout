@@ -2,6 +2,7 @@ use glium::glutin::event::{self, ElementState, KeyboardInput, VirtualKeyCode};
 use glium::Surface;
 
 use cgmath::Vector2;
+use open_oak::circle::Circle;
 use open_oak::events::handle_events;
 use open_oak::init::{init, Game};
 use open_oak::rectangle::Rectangle;
@@ -64,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // init rectangle
     Rectangle::init(&mut resource_manager, &display);
+    Circle::init(&mut resource_manager, &display);
 
     // load breakable texture
     let texture_name = String::from("breakable");
@@ -111,6 +113,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut player = Player::new(Vector2::new(0.35, 1.0 - 0.1), Vector2::new(0.3, 0.06));
     player.rect.set_texture(player_texture_name);
 
+    let radius = 0.1;
+    let mut circle = Circle::new(
+        Vector2::new(
+            player.position.x + player.rect.size.x / 2.0,
+            player.position.y - radius,
+        ),
+        radius,
+        image::Rgba([1.0, 1.0, 1.0, 1.0]),
+    );
+
+    let circle_texture_name = String::from("circle");
+    let texture = ResourceManager::load_texture(&display, "textures/awesomeface.png");
+    resource_manager.add_texture(&circle_texture_name, texture);
+
+    circle.set_texture(circle_texture_name);
+
     let mut pressed_keys: HashSet<VirtualKeyCode> = HashSet::new();
 
     let mut last_frame = Instant::now();
@@ -135,11 +153,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         frame.clear_color(0.2, 0.3, 0.3, 1.0);
 
         // DRAW START
-        for block in &blocks {
-            block.rect.draw(&mut frame, &resource_manager).unwrap();
-        }
+        // for block in &blocks {
+        //     block.rect.draw(&mut frame, &resource_manager).unwrap();
+        // }
 
         player.rect.draw(&mut frame, &resource_manager).unwrap();
+
+        circle
+            .draw(&mut frame, &resource_manager)
+            .expect("Failed to draw circle");
 
         frame.finish().unwrap();
         // DRAW END
